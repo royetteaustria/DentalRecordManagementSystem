@@ -52,9 +52,8 @@ export default function AppointmentModal( {event, onClose, onDeleteEvent} ) {
                         <p className="text-;g text-black font-semibold py-2">
                           Appointment details
                         </p>
-                        <p className='py-2'><span className='font-semibold'>Title</span>: {event.title}</p>
+                        <p className='py-2'><span className='font-semibold'>Client Name</span>: {event.ClientName}</p>
                         <p className='py-2'><span className='font-semibold'>Date Appointment</span>: {date(event.start)} - {date(event.end)}</p>
-                        
                         {event.description && <p className='py-2'><span className='font-semibold'>Description</span>: {event.description}</p>}
                       </div>
                     </div>

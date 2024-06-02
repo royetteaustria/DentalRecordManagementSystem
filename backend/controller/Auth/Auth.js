@@ -10,22 +10,17 @@ const authUser = asyncHandler(async (req, res) => {
 
   const user = await Users.findOne({ email });
 
-  if (
-    user &&
-    (await user.matchPassword(password)) &&
-    user.status === "Active"
-  ) {
+  if (user && (await user.matchPassword(password))) {
     generateToken(res, user._id);
+
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
-      role: user.role,
-      status: user.status,
     });
   } else {
     res.status(401);
-    throw new Error("Invalid email or password");
+    throw new Error('Invalid email or password');
   }
 });
 
@@ -33,97 +28,35 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 
-const checkSuperAdminExists = async () => {
-  try {
-    const existingSuperAdmin = await Users.findOne({ role: "Super Admin" });
-    return existingSuperAdmin !== null;
-  } catch (error) {
-    if (error.name === "MongoServerError" && error.code === 8000) {
-      // This error is thrown when the database is empty
-      return false; // Assume no Super Admin exists
-    } else {
-      throw new Error("Error checking for existing Super Admin");
-    }
-  }
-};
 
 const registerUser = asyncHandler(async (req, res) => {
-  var transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: 'irenedentalclinic@gmail.com',
-      pass: 'DentalClinic',
-    },
-  });
-  const UserEmail = req.body.email;
-  const UserPassword = req.body.password;
-  const name = req.body.username;
-  const UserRole = req.body.role;
-  var mailOptions = {
-    from: "irenedentalclinic@gmail.com",
-    to: UserEmail,
-    subject: "Irene Dental Clinic Credentials account",
-    html: `<p>Hello ${name}</p>
-           <p>Your Account has been successfully created!</p>
-           <p>This is your credentials</p>
-           <p>Role: ${UserRole}</p>
-           <p>Password: ${UserPassword}</p>
-           <p>Email: ${UserEmail}</p>`
-  };
-
-  const { username, email, password, role, status } = req.body;
-
-  if (role === "Super Admin") {
-    const superAdminExists = await checkSuperAdminExists();
-    if (superAdminExists) {
-      res.status(400);
-      throw new Error("Super Admin account already exists");
-    }
-  }
-
-  if (
-    role !== "Super Admin" &&
-    role !== "Dentist_Employee"
-  ) {
-    res.status(400);
-    throw new Error("Invalid role");
-  }
+  const { username, email, password } = req.body;
 
   const userExists = await Users.findOne({ email });
+
   if (userExists) {
     res.status(400);
-    throw new Error("User already exists");
+    throw new Error('User already exists');
   }
 
   const user = await Users.create({
     username,
     email,
     password,
-    status,
-    role,
   });
 
   if (user) {
     generateToken(res, user._id);
+
     res.status(201).json({
       _id: user._id,
-      name: user.name,
+      username: user.username,
       email: user.email,
-      role: user.role,
-      status: user.status,
     });
   } else {
     res.status(400);
-    throw new Error("Invalid user data");
+    throw new Error('Invalid user data');
   }
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent: " + info.response);
-    }
-  });
 });
 
 // @desc    Logout user / clear cookie
@@ -146,13 +79,12 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     res.json({
       _id: user._id,
-      name: user.name,
-      email: user.email,
       username: user.username,
+      email: user.email,
     });
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
 
@@ -160,11 +92,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await Users.findByIdAndUpdate(req.user._id);
+  const user = await Users.findById(req.user._id);
 
   if (user) {
-    user.username = req.body.username || user.username;
-    user.status = req.body.status || user.status;
+    user.name = req.body.username || user.username;
+    user.email = req.body.email || user.email;
 
     if (req.body.password) {
       user.password = req.body.password;
@@ -174,70 +106,19 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
     res.json({
       _id: updatedUser._id,
-      username: updatedUser.username,
+      name: updatedUser.name,
       email: updatedUser.email,
-      status: updatedUser.status,
     });
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
-
-const listUsers = (req, res) => {
-  Users.find()
-    .then((Users) => {
-      if (Users.length === 0) {
-        return res.json({ message: "No records found" });
-      }
-      return res.status(200).json(Users);
-    })
-    .catch((err) => {
-      res
-        .status(500)
-        .json({ message: "Failed to retrieve records", error: err.message });
-    });
-};
 
 // @desc    Update user status
 // @route   PUT /api/users/update-status/:id
 // @access  Private (only accessible by authenticated users with the "System Admin" role)
-const updateUserStatus = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { status, username, role } = req.body;
 
-  // Check if the authenticated user has the "System Admin" role
-  // ... (your existing code for role check)
-
-  const user = await Users.findById(id);
-
-  if (user) {
-    // Check if the new role is "System Administrator"
-    if (role === "Super Admin") {
-      const superAdminExists = await checkSuperAdminExists();
-      if (superAdminExists && user.role !== "Super Admin") {
-        res.status(400);
-        throw new Error("Super Admin account already exists");
-      }
-    }
-
-    user.status = status;
-    user.username = username;
-    user.role = role;
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      username: updatedUser.username,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      status: updatedUser.status,
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
-});
 
 const forgotPassword = asyncHandler(async (req, res) => {
   const email = req.body.email;
@@ -251,14 +132,14 @@ const forgotPassword = asyncHandler(async (req, res) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: 'irenedentalclinic@gmail.com',
-        pass: 'DentalClinic',
+        user: process.env.APP_EMAIL,
+        pass: process.env.APP_PASSWORD,
       },
     });
-    const clientEmail = req.body.email;
+    
     var mailOptions = {
-      from: 'irenedentalclinic@gmail.com',
-      to: clientEmail,
+      from: process.env.APP_EMAIL,
+      to: email,
       subject: "Reset Password Link",
       html: `<!DOCTYPE html>
       <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
@@ -525,7 +406,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
                                   <tr>
                                     <td class="pad">
                                       <div class="alignment" align="center">
-                                         <a href="http://localhost:5100/NewPassword/${user._id}/${token}">Reset password</a></div>
+                                         <a href="http://localhost:3000/NewPassword/${user._id}/${token}">Reset password</a></div>
                                     </td>
                                   </tr>
                                 </table>
@@ -686,8 +567,6 @@ export {
   logoutUser,
   getUserProfile,
   updateUserProfile,
-  listUsers,
-  updateUserStatus,
   forgotPassword,
   resetPassword,
   GetSingleInfo,

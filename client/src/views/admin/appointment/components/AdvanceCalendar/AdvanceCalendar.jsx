@@ -13,7 +13,7 @@ const components = {
         onClick={() => props.onClick(props.event)}
         className="bg-brand-400 text-white"
       >
-        {props.event.title} - {moment(props.event.start).format("YYYY-MM-DD HH:mm")} to {moment(props.event.end).format("YYYY-MM-DD HH:mm")}
+        {props.event.ClientName} - {moment(props.event.start).format("YYYY-MM-DD HH:mm")} to {moment(props.event.end).format("YYYY-MM-DD HH:mm")}
         {props.event.description && <p>{props.event.description}</p>}
       </div>
     );

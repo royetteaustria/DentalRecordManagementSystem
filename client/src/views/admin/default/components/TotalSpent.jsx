@@ -10,8 +10,11 @@ import {
   lineChartOptionsTotalSpent,
 } from "variables/charts";
 import LineChart from "components/charts/LineChart";
+import useFetch from "hooks/api/fetch/useFetch";
 
 const TotalSpent = () => {
+  const url = `http://localhost:4000/api/ClientRoutes`;
+  const { data, loading, error } = useFetch(url);
   return (
     <Card extra="!p-[20px] text-center w-full">
       <div className="flex justify-between">

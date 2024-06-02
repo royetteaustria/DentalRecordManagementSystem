@@ -6,6 +6,8 @@ import navbarimage from "assets/img/layout/Navbar.png";
 import { BsArrowBarUp } from "react-icons/bs";
 import { FiSearch } from "react-icons/fi";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 // import {
 //   IoMdNotificationsOutline,
 //   IoMdInformationCircleOutline,
@@ -13,6 +15,25 @@ import { RiMoonFill, RiSunFill } from "react-icons/ri";
 import avatar from "assets/img/avatars/avatar4.png";
 
 const Navbar = (props) => {
+  const navigate = useNavigate()
+  const handleLogout = async () => {
+    try {
+      // Make a request to the logout endpoint
+      await axios.post('http://localhost:4000/api/UserRoutes/logout', null, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+  
+      // Remove the auth token from local storage
+      localStorage.removeItem('authToken');
+  
+      // Redirect the user to the sign-in page
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
   const { onOpenSidenav, brandText } = props;
   const [darkmode, setDarkmode] = React.useState(false);
 
@@ -124,12 +145,12 @@ const Navbar = (props) => {
                 >
                   Newsletter Settings
                 </a> */}
-                <a
-                  href=" "
-                  className="mt-3 text-sm font-medium text-red-500 transition duration-150 ease-out hover:text-red-500 hover:ease-in"
+                <p
+                onClick={handleLogout}
+                  className="mt-3 cursor-pointer text-sm font-medium text-red-500 transition duration-150 ease-out hover:text-red-500 hover:ease-in"
                 >
                   Log Out
-                </a>
+                </p>
               </div>
             </div>
           }

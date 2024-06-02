@@ -13,16 +13,6 @@ const UsersSchema = mongoose.Schema(
       unique: true,
       required: [true, "Email is required"],
     },
-    role: {
-      type: String,
-      required: [true, "Role is required"],
-      enum: ["Super Admin", "Dentist Employee"],
-    },
-    status: {
-      type: String,
-      enum: ["Active", "InActive"],
-      default: "Active",
-    },
     password: {
       type: String,
       required: [true, "Password is required"],

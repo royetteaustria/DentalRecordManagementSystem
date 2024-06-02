@@ -6,8 +6,9 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const AddAppointment = () => {
-  const [title, setTitle] = useState('');
+  const [ClientName, setTitle] = useState('');
   const [end, setEnd] = useState(null);
+  const [email, setEmail] = useState(null);
   const [start, setStart] = useState(null);
   const [description, setDescription] = useState('');
   const navigate = useNavigate();
@@ -19,8 +20,9 @@ const AddAppointment = () => {
     const requestBody = {
       start,
       end,
-      title,
+      ClientName,
       description,
+      email
     };
 
     try {
@@ -48,15 +50,28 @@ const AddAppointment = () => {
                   <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row"></div>
                   <div className="mb-5.5 mt-2">
                     <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                      Title
+                      Client name
                     </label>
                     <input
                       className="border-stroke focus:border-primary active:border-primary dark:border-form-strokedark  dark:bg-form-input dark:focus:border-primary w-full rounded border-[1.5px] bg-white py-3 px-5 font-medium outline-none transition dark:bg-navy-700 dark:text-white"
                       type="text"
-                      placeholder="Title"
+                      placeholder="Client name"
                       required
-                      value={title}
+                      value={ClientName}
                       onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-5.5 mt-2">
+                    <label className="mb-3 block text-sm font-medium text-black dark:text-white">
+                      Email
+                    </label>
+                    <input
+                      className="border-stroke focus:border-primary active:border-primary dark:border-form-strokedark  dark:bg-form-input dark:focus:border-primary w-full rounded border-[1.5px] bg-white py-3 px-5 font-medium outline-none transition dark:bg-navy-700 dark:text-white"
+                      type="email"
+                      placeholder="Client Email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="mb-5.5 mt-2">
